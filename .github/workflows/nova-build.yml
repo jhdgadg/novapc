@@ -26,9 +26,11 @@ jobs:
           echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
           echo "C:\Program Files\LLVM\bin" >> $env:GITHUB_PATH
 
+      - name: Setup MSVC Developer Command Prompt
+        uses: ilammy/msvc-dev-cmd@v1
+      
       - name: Install vcpkg dependencies
-        run: |
-          C:\vcpkg\vcpkg install --triplet x64-windows-static
+        run: C:\vcpkg\vcpkg install --triplet x64-windows-static
 
       - name: Build
         env:
