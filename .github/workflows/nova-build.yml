@@ -1,4 +1,4 @@
-name: Nova PC - Windows Build
+name: Nova PC - WhiteLabel Flutter Build
 
 on:
   push:
@@ -6,50 +6,55 @@ on:
   workflow_dispatch:
 
 jobs:
-  build-windows:
+  build-windows-flutter:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      - name: Install Rust
-        uses: dtolnay/rust-toolchain@stable
+      - name: Setup Flutter
+        uses: subosito/flutter-action@v2
+        with:
+          channel: 'stable'
+          flutter-version: '3.19.x' # RustDesk'in uyumlu olduğu kararlı Flutter sürümü
 
-      - name: Install LLVM and Build Tools
+      - name: Hard Rebranding (Kökten İsim ve Logo Temizliği)
+        shell: pwsh
         run: |
-          choco install llvm yasm nasm -y
-
-      - name: Setup vcpkg
-        run: |
-          git clone https://github.com/microsoft/vcpkg.git C:\vcpkg
-          cd C:\vcpkg
-          .\bootstrap-vcpkg.bat
-          echo "VCPKG_ROOT=C:\vcpkg" >> $env:GITHUB_ENV
-          echo "C:\Program Files\LLVM\bin" >> $env:GITHUB_PATH
-
-      - name: Setup MSVC Developer Command Prompt
-        uses: ilammy/msvc-dev-cmd@v1
-      
-      - name: Install vcpkg dependencies
-        run: |
-          C:\vcpkg\vcpkg install --triplet x64-windows-static
-
-      - name: Custom Branding (Name and Logo)
-        run: |
-          powershell -Command "(Get-Content src/common.rs) -replace 'RustDesk', 'CloudForge Pro' | Set-Content src/common.rs"
-          if (Test-Path "cloudforge-logo.svg") {
-            Copy-Item "cloudforge-logo.svg" "res/logo.svg" -Force
+          # 1. Flutter tarafındaki uygulama adını değiştirir
+          if (Test-Path "flutter/pubspec.yaml") {
+            (Get-Content flutter/pubspec.yaml) -replace 'name: rustdesk', 'name: cloudforge_pro' | Set-Content flutter/pubspec.yaml
+          }
+          
+          # 2. Windows C++ pencerelerindeki ve başlıklarındaki tüm isimleri kazır
+          Get-ChildItem -Recurse -Filter "*.rs" | ForEach-Object {
+            (Get-Content $_.FullName) -replace 'RustDesk', 'CloudForge Pro' | Set-Content $_.FullName
+          }
+          Get-ChildItem -Recurse -Filter "*.dart" | ForEach-Object {
+            (Get-Content $_.FullName) -replace 'RustDesk', 'CloudForge Pro' | Set-Content $_.FullName
           }
 
-      - name: Build
-        env:
-          VCPKG_ROOT: C:\vcpkg
-          LIBCLANG_PATH: C:\Program Files\LLVM\bin
-        run: cargo build --release
+          # 3. Senin logon varsa arayüzdeki orijinal logoların üzerine zorla yazar
+          if (Test-Path "cloudforge-logo.svg") {
+            if (Test-Path "flutter/assets") {
+              Copy-Item "cloudforge-logo.svg" "flutter/assets/logo.svg" -Force
+            }
+          }
 
-      - name: Upload artifact
+      - name: Flutter Build Windows
+        run: |
+          cd flutter
+          flutter pub get
+          flutter build windows --release
+
+      - name: Package Output
+        shell: pwsh
+        run: |
+          Compress-Archive -Path flutter/build/windows/x64/runner/Release/* -DestinationPath CloudForge-Pro-Windows.zip
+
+      - name: Upload Finished Release
         uses: actions/upload-artifact@v4
         with:
-          name: CloudForge-Pro-Windows
-          path: target/release/*.exe
+          name: CloudForge-Pro-Custom
+          path: CloudForge-Pro-Windows.zip
