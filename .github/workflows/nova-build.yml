@@ -33,9 +33,6 @@ jobs:
       - name: Install vcpkg dependencies
         run: |
           C:\vcpkg\vcpkg install --triplet x64-windows-static --x-manifest-with-copy
-          C:\vcpkg\vcpkg install opus:x64-windows-static
-          C:\vcpkg\vcpkg install libvpx:x64-windows-static
-          C:\vcpkg\vcpkg install libwebm:x64-windows-static
 
       - name: Custom Branding (Name and Logo)
         run: |
