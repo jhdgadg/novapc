@@ -17,7 +17,6 @@ jobs:
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
-          flutter-version: '3.19.x' # RustDesk'in uyumlu olduğu kararlı Flutter sürümü
 
       - name: Hard Rebranding (Kökten İsim ve Logo Temizliği)
         shell: pwsh
