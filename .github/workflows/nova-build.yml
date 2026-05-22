@@ -16,8 +16,9 @@ jobs:
       - name: Install Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install LLVM
-        run: choco install llvm -y
+      - name: Install LLVM and Build Tools
+        run: |
+          choco install llvm yasm nasm -y
 
       - name: Setup vcpkg
         run: |
@@ -36,10 +37,7 @@ jobs:
 
       - name: Custom Branding (Name and Logo)
         run: |
-          # RustDesk yazılarını senin isminle değiştirir
           powershell -Command "(Get-Content src/common.rs) -replace 'RustDesk', 'CloudForge Pro' | Set-Content src/common.rs"
-          
-          # Logosunu ve ikonunu senin yüklediğin görsellerle değiştirir
           if (Test-Path "cloudforge-logo.svg") {
             Copy-Item "cloudforge-logo.svg" "res/logo.svg" -Force
           }
