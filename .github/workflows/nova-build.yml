@@ -18,23 +18,26 @@ jobs:
         with:
           channel: 'stable'
 
-      - name: Hard Rebranding (Kökten İsim ve Logo Temizliği)
+      - name: Safe Rebranding (Nokta Atışı İsim ve Logo Değişimi)
         shell: pwsh
         run: |
-          # 1. Flutter tarafındaki uygulama adını değiştirir
-          if (Test-Path "flutter/pubspec.yaml") {
-            (Get-Content flutter/pubspec.yaml) -replace 'name: rustdesk', 'name: cloudforge_pro' | Set-Content flutter/pubspec.yaml
+          # 1. Windows pencere başlığını ve masaüstü adını değiştirir
+          if (Test-Path "flutter/windows/runner/main.cpp") {
+            (Get-Content flutter/windows/runner/main.cpp) -replace 'L"RustDesk"', 'L"CloudForge Pro"' | Set-Content flutter/windows/runner/main.cpp
           }
           
-          # 2. Windows C++ pencerelerindeki ve başlıklarındaki tüm isimleri kazır
-          Get-ChildItem -Recurse -Filter "*.rs" | ForEach-Object {
-            (Get-Content $_.FullName) -replace 'RustDesk', 'CloudForge Pro' | Set-Content $_.FullName
+          # 2. Sadece ana dil ve string dosyalarındaki görünen isimleri değiştirir
+          if (Test-Path "res/lang/en.txt") {
+            (Get-Content res/lang/en.txt) -replace 'RustDesk', 'CloudForge Pro' | Set-Content res/lang/en.txt
           }
-          Get-ChildItem -Recurse -Filter "*.dart" | ForEach-Object {
-            (Get-Content $_.FullName) -replace 'RustDesk', 'CloudForge Pro' | Set-Content $_.FullName
+          if (Test-Path "res/lang/tr.txt") {
+            (Get-Content res/lang/tr.txt) -replace 'RustDesk', 'CloudForge Pro' | Set-Content res/lang/tr.txt
+          }
+          if (Test-Path "src/common.rs") {
+            (Get-Content src/common.rs) -replace 'APP_NAME = "RustDesk"', 'APP_NAME = "CloudForge Pro"' | Set-Content src/common.rs
           }
 
-          # 3. Senin logon varsa arayüzdeki orijinal logoların üzerine zorla yazar
+          # 3. Logonun üzerine zorla kendi logonuzu yazar
           if (Test-Path "cloudforge-logo.svg") {
             if (Test-Path "flutter/assets") {
               Copy-Item "cloudforge-logo.svg" "flutter/assets/logo.svg" -Force
