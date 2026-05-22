@@ -30,7 +30,12 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1
       
       - name: Install vcpkg dependencies
-        run: C:\vcpkg\vcpkg install --triplet x64-windows-static
+        shell: pwsh
+        env:
+          CC: cl.exe
+          CXX: cl.exe
+        run: |
+          C:\vcpkg\vcpkg install --triplet x64-windows-static --host-triplet x64-windows
 
       - name: Build
         env:
